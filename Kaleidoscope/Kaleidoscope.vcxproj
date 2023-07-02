@@ -101,6 +101,10 @@
     <IncludePath>C:\wxWidgets-3.2.2.1\include;C:\wxWidgets-3.2.2.1\include\msvc;$(IncludePath)</IncludePath>
     <LibraryPath>C:\wxWidgets-3.2.2.1\lib\vc_x64_lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\wxWidgets-3.2.2.1\include;C:\wxWidgets-3.2.2.1\include\msvc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\wxWidgets-3.2.2.1\lib\vc_x64_lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -151,6 +155,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

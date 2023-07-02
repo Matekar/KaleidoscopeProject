@@ -39,10 +39,14 @@ class GUIMyFrame1 : public MyFrame1
 
 		void Repaint();
 
+		void MaskReflect(double angle);
+		void Extend();
+
 		void Reflect(double angle);
 
 		wxImage original;
 		wxImage copy;
+		wxImage extended;
 	public:
 		/** Constructor */
 		GUIMyFrame1( wxWindow* parent );

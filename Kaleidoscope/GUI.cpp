@@ -20,8 +20,7 @@ MyFrame1::MyFrame1( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	panel_sizer = new wxBoxSizer( wxVERTICAL );
 
 	m_panel1 = new wxPanel( this, wxID_ANY, wxDefaultPosition, wxSize( 600,600 ), wxTAB_TRAVERSAL );
-	m_panel1->SetMinSize( wxSize( 600,600 ) );
-	m_panel1->SetMaxSize( wxSize( 900,900 ) );
+	m_panel1->SetMaxSize( wxSize( 600,600 ) );
 
 	panel_sizer->Add( m_panel1, 1, wxEXPAND | wxALL, 5 );
 

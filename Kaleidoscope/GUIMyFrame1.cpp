@@ -78,8 +78,6 @@ void GUIMyFrame1::OpenFile( wxCommandEvent& event )
     this->copy = this->original.Copy();
 
 
-
-
     Repaint();
 }
 
@@ -93,6 +91,12 @@ void GUIMyFrame1::Recount_Axes( wxScrollEvent& event )
 {
     int new_val = this->count_scrollBar->GetThumbPosition() + 1;
     this->countval_staticText->SetLabel(std::to_string(new_val));
+    copy = original.Copy();
+    for (int i = 0; i < new_val; i++) {
+        Extend();
+        MaskReflect(180.0 / new_val * i);
+    }
+    Repaint();
 // TODO: Implement Recount_Axes
 }
 
@@ -100,6 +104,7 @@ void GUIMyFrame1::Change_Angle( wxScrollEvent& event )
 {
     int new_val = this->angle_scrollBar->GetThumbPosition();
     this->angleval_staticText->SetLabel(std::to_string(new_val));
+    Repaint();
 // TODO: Implement Change_Angle
 }
 
@@ -261,6 +266,122 @@ void GUIMyFrame1::Repaint() {
     wxBufferedDC dc(&dc1);
 
     dc.DrawBitmap(wxBitmap(this->copy), wxPoint(0, 0));
+}
+
+void GUIMyFrame1::Extend() {
+    wxBitmap* TempBMP = new wxBitmap(1800, 1800);
+
+    {
+        wxMemoryDC extender(*TempBMP);
+        extender.SetBackground(*wxWHITE_BRUSH);
+        extender.Clear();
+
+        extender.DrawBitmap(copy, 600, 600);
+        extender.DrawBitmap(copy.Mirror(false), 600, 0);
+        extender.DrawBitmap(copy.Mirror(false), 600, 1200);
+        extender.DrawBitmap(copy.Mirror(), 0, 600);
+        extender.DrawBitmap(copy.Mirror(), 1200, 600);
+    }
+
+    extended = (*TempBMP).ConvertToImage();
+    delete TempBMP;
+}
+
+void GUIMyFrame1::MaskReflect(double angle) {
+    //Wytnij z werjsi rozszerzonej
+    wxImage sub = extended.GetSubImage(wxRect(wxPoint(600, 600), wxPoint(1200, 1200)));
+    wxBitmap* TempBMP = new wxBitmap(sub);
+
+    double diff = 300 * tan(angle * M_PI / 180.0);
+
+    //Stworz maske
+    {
+        wxMemoryDC mask(*TempBMP);
+        mask.SetBrush(wxBrush(wxColor(0, 0, 0)));
+
+        wxPointList* points = new wxPointList();
+
+        wxPoint* win1;
+        wxPoint* win2;
+        wxPoint* win3;
+        wxPoint* win4;
+
+        if (angle < 90) {
+            win1 = new wxPoint(0, 600);
+            win2 = new wxPoint(600, 600);
+            win3 = new wxPoint(600, 300 + diff);
+            win4 = new wxPoint(0, 300 - diff);
+        }
+        else if (angle == 90) {
+            win1 = new wxPoint(0, 0);
+            win2 = new wxPoint(0, 600);
+            win3 = new wxPoint(300, 600);
+            win4 = new wxPoint(300, 0);
+        }
+        else if (angle < 180) {
+            win1 = new wxPoint(0, 0);
+            win2 = new wxPoint(600, 0);
+            win3 = new wxPoint(600, 300 + diff);
+            win4 = new wxPoint(0, 300 - diff);
+        }
+        else {
+            win1 = new wxPoint(0, 0);
+            win2 = new wxPoint(600, 0);
+            win3 = new wxPoint(600, diff);
+            win4 = new wxPoint(0, 600 - diff);
+        }
+
+        points->Append(win1);
+        points->Append(win2);
+        points->Append(win3);
+        points->Append(win4);
+
+        mask.DrawPolygon(points);
+
+        delete win1;
+        delete win2;
+        delete win3;
+        delete win4;
+        delete points;
+    }
+
+    //Wloz z powrotem do wersji rozszerzonej
+    wxBitmap* dcBitmap = new wxBitmap(extended);
+    {
+        wxMemoryDC compact(*dcBitmap);
+        compact.DrawBitmap(*TempBMP, wxPoint(600, 600));
+    }
+    extended = dcBitmap->ConvertToImage();
+    delete dcBitmap;
+
+    //skopiuj piksele
+    wxImage TempImage = extended;
+    for (int x = 600; x < 1200; x++) for (int y = 600; y < 1200; y++) {
+        if (TempImage.GetRed(x, y) == 0 && TempImage.GetGreen(x, y) == 0 && TempImage.GetBlue(x, y) == 0) {
+            Vector coords;
+            coords.Set(x - 900, y - 900);
+
+            double rads = angle * M_PI / 180;
+
+            Matrix ReflectMatrix;
+            ReflectMatrix.data[0][0] = cos(2 * rads);
+            ReflectMatrix.data[0][1] = sin(2 * rads);
+            ReflectMatrix.data[1][0] = sin(2 * rads);
+            ReflectMatrix.data[1][1] = -1 * cos(2 * rads);
+
+            Vector newCoords = ReflectMatrix * coords;
+            int copyX = newCoords.GetX() + 900;
+            int copyY = newCoords.GetY() + 900;
+
+            TempImage.SetRGB(x, y, TempImage.GetRed(copyX, copyY), TempImage.GetGreen(copyX, copyY), TempImage.GetBlue(copyX, copyY));
+        }
+    }
+
+    //przypisz do copy
+    copy = TempImage.GetSubImage(wxRect(wxPoint(600, 600), wxPoint(1200, 1200)));
+
+    delete TempBMP;
+    return;
 }
 
 /*void GUIMyFrame1::Reflect(double angle) {
